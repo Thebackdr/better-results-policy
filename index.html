@@ -24,6 +24,10 @@
       touch-action: pan-y;
     }
 
+    @media (max-width: 600px) {
+      html, body { overflow: auto; }
+    }
+
     #progress-bar {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -85,6 +89,32 @@
       transform: translateX(-60px);
     }
 
+    @media (max-width: 600px) {
+      #screen-wrap {
+        position: relative;
+        top: 0; bottom: auto;
+        overflow: visible;
+        min-height: calc(100vh - 56px);
+      }
+      .screen {
+        position: relative;
+        transform: none !important;
+        opacity: 0;
+        pointer-events: none;
+        padding: 32px 24px 36px;
+        min-height: calc(100vh - 56px);
+        display: none;
+      }
+      .screen.active {
+        display: flex;
+        opacity: 1;
+        pointer-events: all;
+      }
+      .screen.exit-left {
+        display: none;
+      }
+    }
+
     .screen-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
     .step-label {
@@ -118,6 +148,17 @@
       color: var(--text);
       margin-bottom: 14px;
       max-width: 680px;
+    }
+
+    @media (max-width: 600px) {
+      h1 { font-size: 26px; margin-bottom: 14px; }
+      h2 { font-size: 22px; margin-bottom: 12px; }
+      p { font-size: 16px; margin-bottom: 10px; }
+      p.muted { font-size: 15px; }
+      .icon-circle { width: 52px; height: 52px; font-size: 22px; margin-bottom: 18px; }
+      .step-label { margin-bottom: 12px; }
+      .divider { margin-bottom: 16px; }
+      .btn-next { min-width: 120px; padding: 14px 24px; font-size: 16px; }
     }
 
     p.muted {
@@ -218,6 +259,14 @@
       cursor: crosshair;
       display: block;
       touch-action: none;
+    }
+
+    @media (max-width: 600px) {
+      #sig-canvas { height: 130px; }
+      #patient-name { font-size: 16px; padding: 13px 16px; }
+      .btn-confirm { font-size: 16px; padding: 14px 24px; }
+      .name-block { margin-bottom: 16px; }
+      .sig-block { margin-bottom: 12px; }
     }
     #sig-canvas.signed { border-color: var(--accent); }
 
