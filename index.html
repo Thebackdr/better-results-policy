@@ -24,10 +24,7 @@
       touch-action: pan-y;
     }
 
-    @media (max-width: 600px) {
-      html, body { overflow: auto; }
-    }
-
+    /* ── PROGRESS BAR ── */
     #progress-bar {
       position: fixed;
       top: 0; left: 0; right: 0;
@@ -41,6 +38,7 @@
       transition: width 0.4s ease;
     }
 
+    /* ── LOGO STRIP ── */
     #logo-strip {
       position: fixed;
       top: 4px; left: 0; right: 0;
@@ -60,6 +58,7 @@
       text-transform: uppercase;
     }
 
+    /* ── SCREEN WRAPPER ── */
     #screen-wrap {
       position: fixed;
       top: 56px; bottom: 0; left: 0; right: 0;
@@ -78,6 +77,8 @@
       transform: translateX(60px);
       transition: opacity 0.35s ease, transform 0.35s ease;
       pointer-events: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .screen.active {
       opacity: 1;
@@ -88,33 +89,12 @@
       opacity: 0;
       transform: translateX(-60px);
     }
-
-    @media (max-width: 600px) {
-      #screen-wrap {
-        position: relative;
-        top: 0; bottom: auto;
-        overflow: visible;
-        min-height: calc(100vh - 56px);
-      }
-      .screen {
-        position: relative;
-        transform: none !important;
-        opacity: 0;
-        pointer-events: none;
-        padding: 32px 24px 36px;
-        min-height: calc(100vh - 56px);
-        display: none;
-      }
-      .screen.active {
-        display: flex;
-        opacity: 1;
-        pointer-events: all;
-      }
-      .screen.exit-left {
-        display: none;
-      }
+    .screen.exit-right {
+      opacity: 0;
+      transform: translateX(60px);
     }
 
+    /* ── CONTENT ── */
     .screen-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
     .step-label {
@@ -150,22 +130,12 @@
       max-width: 680px;
     }
 
-    @media (max-width: 600px) {
-      h1 { font-size: 26px; margin-bottom: 14px; }
-      h2 { font-size: 22px; margin-bottom: 12px; }
-      p { font-size: 16px; margin-bottom: 10px; }
-      p.muted { font-size: 15px; }
-      .icon-circle { width: 52px; height: 52px; font-size: 22px; margin-bottom: 18px; }
-      .step-label { margin-bottom: 12px; }
-      .divider { margin-bottom: 16px; }
-      .btn-next { min-width: 120px; padding: 14px 24px; font-size: 16px; }
-    }
-
     p.muted {
       font-size: 17px;
       color: var(--muted);
     }
 
+    /* ── ICON CIRCLE ── */
     .icon-circle {
       width: 68px; height: 68px;
       border-radius: 50%;
@@ -175,6 +145,7 @@
       margin-bottom: 28px;
     }
 
+    /* ── DIVIDER ── */
     .divider {
       width: 48px; height: 3px;
       background: var(--accent);
@@ -182,13 +153,18 @@
       margin-bottom: 24px;
     }
 
+    /* ── BOTTOM ROW ── */
     .bottom-row {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      padding-top: 24px;
+      flex-shrink: 0;
     }
 
-    .dot-wrap { display: flex; gap: 7px; }
+    .dot-wrap {
+      display: flex; gap: 7px;
+    }
     .dot {
       width: 8px; height: 8px;
       border-radius: 50%;
@@ -197,6 +173,21 @@
     }
     .dot.active { background: var(--accent); transform: scale(1.25); }
     .dot.done { background: var(--accent); opacity: 0.4; }
+
+    .nav-btns { display: flex; gap: 12px; align-items: center; }
+
+    .btn-back {
+      padding: 18px 24px;
+      background: transparent;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      font-size: 18px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      user-select: none;
+    }
+    .btn-back:active { border-color: var(--accent); color: var(--accent); }
 
     .btn-next {
       min-width: 150px;
@@ -215,10 +206,8 @@
     }
     .btn-next:active { transform: scale(0.97); background: #235f6a; }
 
-    /* Name input */
-    .name-block {
-      margin-bottom: 24px;
-    }
+    /* ── NAME INPUT ── */
+    .name-block { margin-bottom: 20px; }
     .name-label {
       font-size: 16px;
       color: var(--muted);
@@ -240,16 +229,14 @@
     #patient-name:focus { border-color: var(--accent); }
     #patient-name.filled { border-color: var(--accent); }
 
-    /* Signature */
-    .sig-block { margin: 0 0 20px; }
-
+    /* ── SIGNATURE ── */
+    .sig-block { margin-bottom: 16px; }
     .sig-label {
       font-size: 16px;
       color: var(--muted);
       margin-bottom: 10px;
       font-weight: 500;
     }
-
     #sig-canvas {
       width: 100%;
       height: 180px;
@@ -260,14 +247,6 @@
       display: block;
       touch-action: none;
     }
-
-    @media (max-width: 600px) {
-      #sig-canvas { height: 130px; }
-      #patient-name { font-size: 16px; padding: 13px 16px; }
-      .btn-confirm { font-size: 16px; padding: 14px 24px; }
-      .name-block { margin-bottom: 16px; }
-      .sig-block { margin-bottom: 12px; }
-    }
     #sig-canvas.signed { border-color: var(--accent); }
 
     .sig-actions {
@@ -275,7 +254,6 @@
       gap: 12px;
       margin-top: 10px;
     }
-
     .btn-clear {
       padding: 12px 22px;
       background: transparent;
@@ -314,7 +292,7 @@
     }
     .error-msg.show { display: block; }
 
-    /* Done screen */
+    /* ── DONE SCREEN ── */
     #screen-done {
       display: none;
       position: fixed;
@@ -338,6 +316,50 @@
       font-size: 44px;
       margin-bottom: 32px;
     }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      html, body { overflow: auto; height: auto; }
+
+      #screen-wrap {
+        position: relative;
+        top: 0; bottom: auto;
+        height: auto;
+        overflow: visible;
+      }
+
+      .screen {
+        position: relative;
+        transform: none !important;
+        opacity: 0;
+        pointer-events: none;
+        padding: 28px 22px 32px;
+        min-height: calc(100vh - 56px);
+        overflow: visible;
+        display: none;
+      }
+      .screen.active {
+        display: flex;
+        opacity: 1;
+        pointer-events: all;
+      }
+      .screen.exit-left,
+      .screen.exit-right { display: none; }
+
+      h1 { font-size: 26px; margin-bottom: 14px; }
+      h2 { font-size: 22px; margin-bottom: 12px; }
+      p { font-size: 16px; margin-bottom: 10px; }
+      p.muted { font-size: 15px; }
+      .icon-circle { width: 52px; height: 52px; font-size: 22px; margin-bottom: 18px; }
+      .step-label { margin-bottom: 12px; }
+      .divider { margin-bottom: 16px; }
+      .btn-next { min-width: 110px; padding: 14px 22px; font-size: 16px; }
+      .btn-back { padding: 14px 18px; font-size: 16px; }
+      #sig-canvas { height: 130px; }
+      #patient-name { font-size: 16px; padding: 13px 16px; max-width: 100%; }
+      .btn-confirm { font-size: 16px; padding: 14px 20px; }
+      .bottom-row { padding-top: 20px; }
+    }
   </style>
 </head>
 <body>
@@ -357,7 +379,9 @@
     </div>
     <div class="bottom-row">
       <div class="dot-wrap" id="dots"></div>
-      <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      <div class="nav-btns">
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
     </div>
   </div>
 
@@ -371,7 +395,10 @@
     </div>
     <div class="bottom-row">
       <div class="dot-wrap"></div>
-      <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
     </div>
   </div>
 
@@ -387,7 +414,10 @@
     </div>
     <div class="bottom-row">
       <div class="dot-wrap"></div>
-      <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
     </div>
   </div>
 
@@ -403,7 +433,10 @@
     </div>
     <div class="bottom-row">
       <div class="dot-wrap"></div>
-      <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
     </div>
   </div>
 
@@ -418,7 +451,10 @@
     </div>
     <div class="bottom-row">
       <div class="dot-wrap"></div>
-      <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
     </div>
   </div>
 
@@ -433,12 +469,34 @@
     </div>
     <div class="bottom-row">
       <div class="dot-wrap"></div>
-      <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
     </div>
   </div>
 
-  <!-- Screen 7 – Name + Signature -->
+  <!-- Screen 7 – 3 Strike Rule -->
   <div class="screen" data-index="6">
+    <div class="screen-content">
+      <div class="icon-circle">⚠️</div>
+      <h2>Our 3-Strike Policy</h2>
+      <div class="divider"></div>
+      <p>If you miss three appointments in a row without letting us know, we'll reach out — and if we can't reconnect, we'll need to cancel your care plan.</p>
+      <p class="muted">Think of it like a personal trainer who reserves your session every week. If you keep not showing up without a word, eventually they have to give that spot to someone who's ready to use it. It's not about punishment — it's about commitment.</p>
+      <p class="muted">If your priorities have shifted or life has got in the way, that's completely okay. Just let us know. We'll pause your care, no questions asked. What we can't do is hold your place while others wait.</p>
+    </div>
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 8 – Name + Signature -->
+  <div class="screen" data-index="7">
     <div class="screen-content">
       <h2>Our commitment</h2>
       <div class="divider"></div>
@@ -459,8 +517,8 @@
         <div class="error-msg" id="error-msg">Please enter your name and sign above.</div>
       </div>
     </div>
-    <div class="bottom-row" style="justify-content: flex-end;">
-      <div></div>
+    <div class="bottom-row" style="justify-content: flex-start;">
+      <button class="btn-back" onclick="prevScreen()">←</button>
     </div>
   </div>
 
@@ -477,7 +535,7 @@
   const SUPABASE_URL = 'https://eqkfbovepgogwvsixkld.supabase.co';
   const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2Zib3ZlcGdvZ3d2c2l4a2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NDYxOTIsImV4cCI6MjA5NjEyMjE5Mn0.IbcT8DFIquPogcWiDmJURlZnwzlJbIOpdDFyZB8h_Bc';
 
-  const TOTAL = 7;
+  const TOTAL = 8;
   let current = 0;
   let sigHasContent = false;
   let nameHasContent = false;
@@ -496,6 +554,8 @@
   function updateProgress() {
     const pct = ((current + 1) / TOTAL) * 100;
     document.getElementById('progress-fill').style.width = pct + '%';
+    // Scroll to top on mobile when changing screens
+    window.scrollTo(0, 0);
   }
 
   function nextScreen() {
@@ -510,7 +570,19 @@
     setTimeout(() => screens[current - 1].classList.remove('exit-left'), 400);
   }
 
-  // Swipe
+  function prevScreen() {
+    if (current <= 0) return;
+    const screens = document.querySelectorAll('.screen');
+    screens[current].classList.add('exit-right');
+    screens[current].classList.remove('active');
+    current--;
+    screens[current].classList.add('active');
+    buildDots();
+    updateProgress();
+    setTimeout(() => screens[current + 1].classList.remove('exit-right'), 400);
+  }
+
+  // Swipe support (both directions)
   let touchStartX = 0;
   document.getElementById('screen-wrap').addEventListener('touchstart', e => {
     touchStartX = e.touches[0].clientX;
@@ -518,6 +590,7 @@
   document.getElementById('screen-wrap').addEventListener('touchend', e => {
     const dx = touchStartX - e.changedTouches[0].clientX;
     if (dx > 60 && current < TOTAL - 1) nextScreen();
+    if (dx < -60 && current > 0) prevScreen();
   }, { passive: true });
 
   // Name input
@@ -549,7 +622,13 @@
     };
   }
 
-  function startDraw(e) { e.preventDefault(); drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); }
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    const p = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }
 
   function draw(e) {
     if (!drawing) return;
