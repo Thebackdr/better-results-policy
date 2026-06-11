@@ -1,997 +1,732 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Practice Revenue Forecaster</title>
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0f1117; color: #e2e8f0; min-height: 100vh; font-size: 13px; }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>The Back Dr — Your Care Journey</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-/* ── HEADER ── */
-header { background: linear-gradient(135deg,#1a1f2e,#16213e); border-bottom:1px solid #2d3748; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
-header .left { display:flex; align-items:center; gap:12px; }
-header .logo { width:36px; height:36px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border-radius:9px; display:flex; align-items:center; justify-content:center; font-size:17px; }
-header h1 { font-size:18px; font-weight:700; color:#f1f5f9; }
-header p  { font-size:11px; color:#64748b; margin-top:1px; }
-.top-tabs { display:flex; gap:4px; }
-.top-tabs button { padding:6px 14px; border-radius:7px; border:1px solid #2d3748; background:transparent; color:#64748b; font-size:12px; cursor:pointer; transition:all .15s; }
-.top-tabs button.active { background:#6366f1; border-color:#6366f1; color:#fff; font-weight:600; }
+    :root {
+      --brand: #1a3a4a;
+      --accent: #2e7d8a;
+      --light: #f5f7f8;
+      --text: #1a1a2e;
+      --muted: #5a6a72;
+      --border: #dce4e8;
+    }
 
-/* ── LAYOUT ── */
-.layout { display:grid; grid-template-columns:370px 1fr; min-height:calc(100vh - 65px); }
+    html, body {
+      height: 100%;
+      font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--light);
+      overflow: hidden;
+      touch-action: pan-y;
+    }
 
-/* ── SIDEBAR ── */
-.sidebar { background:#141820; border-right:1px solid #2d3748; overflow-y:auto; }
+    /* ── PROGRESS BAR ── */
+    #progress-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: var(--border);
+      z-index: 100;
+    }
+    #progress-fill {
+      height: 100%;
+      background: var(--accent);
+      transition: width 0.4s ease;
+    }
 
-/* Collapsible sections */
-.sb-block { border-bottom:1px solid #1e2535; }
-.sb-block-header { display:flex; justify-content:space-between; align-items:center; padding:10px 18px; cursor:pointer; user-select:none; background:#141820; transition:background .15s; }
-.sb-block-header:hover { background:#1a2030; }
-.sb-block-title { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1.1px; color:#64748b; }
-.sb-block-arrow { font-size:10px; color:#4a5568; transition:transform .2s; }
-.sb-block-arrow.open { transform:rotate(90deg); }
-.sb-block-body { padding:12px 18px 14px; display:none; }
-.sb-block-body.open { display:block; }
+    /* ── LOGO STRIP ── */
+    #logo-strip {
+      position: fixed;
+      top: 4px; left: 0; right: 0;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 36px;
+      background: #fff;
+      border-bottom: 1px solid var(--border);
+      z-index: 99;
+    }
+    #logo-strip span {
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      color: var(--brand);
+      text-transform: uppercase;
+    }
 
-.field { margin-bottom:9px; }
-.field label { display:block; font-size:11px; color:#94a3b8; margin-bottom:3px; font-weight:500; }
-.field input, .field select { width:100%; background:#1e2535; border:1px solid #2d3748; border-radius:6px; color:#f1f5f9; padding:7px 10px; font-size:13px; outline:none; transition:border-color .15s; }
-.field input:focus, .field select:focus { border-color:#6366f1; }
-.unit-wrap { position:relative; }
-.unit-wrap input { padding-right:38px; }
-.unit-wrap .u { position:absolute; right:9px; top:50%; transform:translateY(-50%); font-size:11px; color:#4a5568; pointer-events:none; }
+    /* ── SCREEN WRAPPER ── */
+    #screen-wrap {
+      position: fixed;
+      top: 56px; bottom: 0; left: 0; right: 0;
+      overflow: hidden;
+    }
 
-/* Lead sources table */
-.lead-table { width:100%; border-collapse:collapse; margin-bottom:8px; }
-.lead-table th { font-size:10px; color:#4a5568; font-weight:700; text-transform:uppercase; letter-spacing:.5px; padding:4px 6px; text-align:left; }
-.lead-table th:not(:first-child) { text-align:right; }
-.lead-table td { padding:4px 6px; }
-.lead-table td:not(:first-child) { text-align:right; }
-.lead-table td .src-label { font-size:12px; color:#94a3b8; }
-.lead-table td input { width:64px; background:#1e2535; border:1px solid #2d3748; border-radius:5px; color:#f1f5f9; padding:5px 7px; font-size:12px; outline:none; text-align:right; }
-.lead-table td input:focus { border-color:#6366f1; }
-.lead-total-row { display:flex; justify-content:space-between; align-items:center; background:#1a2030; border-radius:6px; padding:7px 10px; margin-bottom:4px; }
-.lead-total-row .ltl { font-size:11px; color:#64748b; }
-.lead-total-row .ltv { font-size:14px; font-weight:700; color:#818cf8; }
+    .screen {
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 52px 60px 44px;
+      background: #fff;
+      opacity: 0;
+      transform: translateX(60px);
+      transition: opacity 0.35s ease, transform 0.35s ease;
+      pointer-events: none;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    .screen.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: all;
+    }
+    .screen.exit-left {
+      opacity: 0;
+      transform: translateX(-60px);
+    }
+    .screen.exit-right {
+      opacity: 0;
+      transform: translateX(60px);
+    }
 
-/* Rate grid */
-.rate-grid { display:grid; grid-template-columns:1fr 1fr; gap:7px; margin-bottom:8px; }
-.rate-item label { display:block; font-size:10px; color:#64748b; margin-bottom:3px; }
-.rate-item .unit-wrap input { font-size:12px; padding:6px 28px 6px 8px; }
+    /* ── CONTENT ── */
+    .screen-content { flex: 1; display: flex; flex-direction: column; justify-content: center; }
 
-/* Derived pills */
-.pill-row { display:flex; justify-content:space-between; align-items:center; padding:5px 9px; background:#1a2535; border-radius:6px; margin-bottom:5px; }
-.pill-row .pl { font-size:11px; color:#64748b; }
-.pill-row .pv { font-size:12px; font-weight:600; color:#818cf8; }
+    .step-label {
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 20px;
+    }
 
-/* CPV toggle */
-.cpv-toggle { display:flex; gap:6px; margin-bottom:8px; }
-.cpv-toggle button { flex:1; padding:6px; border-radius:6px; border:1px solid #2d3748; background:#1e2535; color:#64748b; font-size:11px; cursor:pointer; font-weight:600; transition:all .15s; }
-.cpv-toggle button.active { background:#6366f1; border-color:#6366f1; color:#fff; }
+    h1 {
+      font-size: 34px;
+      font-weight: 700;
+      line-height: 1.25;
+      color: var(--brand);
+      margin-bottom: 18px;
+    }
 
-/* Additional revenue */
-.rev-stream { display:flex; align-items:center; gap:7px; margin-bottom:7px; }
-.rev-stream .rs-name { flex:1; font-size:12px; color:#94a3b8; }
-.rev-stream .rs-input { width:90px; background:#1e2535; border:1px solid #2d3748; border-radius:6px; color:#f1f5f9; padding:6px 8px; font-size:12px; outline:none; text-align:right; }
-.rev-stream .rs-input:focus { border-color:#6366f1; }
-.rev-stream .rs-unit { font-size:10px; color:#4a5568; width:26px; }
-.rev-total { display:flex; justify-content:space-between; align-items:center; background:#1a2030; border-radius:6px; padding:7px 10px; margin-top:4px; }
-.rev-total .rtl { font-size:11px; color:#64748b; }
-.rev-total .rtv { font-size:14px; font-weight:700; color:#22d3ee; }
+    h2 {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      color: var(--brand);
+      margin-bottom: 16px;
+    }
 
-/* Scenario strip */
-.scenario-strip { padding:12px 18px; background:#141820; border-bottom:1px solid #1e2535; display:flex; flex-direction:column; gap:8px; }
-.scenario-tabs { display:flex; gap:5px; }
-.scenario-tabs button { flex:1; padding:6px 4px; border-radius:6px; border:1px solid #2d3748; background:#1e2535; color:#94a3b8; font-size:11px; cursor:pointer; font-weight:500; transition:all .15s; }
-.scenario-tabs button.active { background:#6366f1; border-color:#6366f1; color:#fff; }
+    p {
+      font-size: 19px;
+      line-height: 1.55;
+      color: var(--text);
+      margin-bottom: 14px;
+      max-width: 680px;
+    }
 
-/* Run button */
-.run-wrap { padding:12px 18px; }
-.btn-run { width:100%; padding:11px; background:linear-gradient(135deg,#6366f1,#8b5cf6); border:none; border-radius:9px; color:#fff; font-size:14px; font-weight:600; cursor:pointer; transition:opacity .15s; }
-.btn-run:hover { opacity:.88; }
+    p.muted {
+      font-size: 17px;
+      color: var(--muted);
+    }
 
-/* Quick stats bar */
-.quick-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:0; border-bottom:1px solid #1e2535; }
-.qs-item { padding:8px 12px; text-align:center; border-right:1px solid #1e2535; }
-.qs-item:last-child { border-right:none; }
-.qs-item .qsl { font-size:9px; color:#4a5568; text-transform:uppercase; letter-spacing:.6px; }
-.qs-item .qsv { font-size:13px; font-weight:700; color:#818cf8; margin-top:1px; }
+    /* ── ICON CIRCLE ── */
+    .icon-circle {
+      width: 68px; height: 68px;
+      border-radius: 50%;
+      background: #e8f4f6;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px;
+      margin-bottom: 28px;
+    }
 
-/* ── MAIN ── */
-.main { padding:20px 24px; overflow-y:auto; background:#0f1117; }
-.tab-content { display:none; }
-.tab-content.active { display:block; }
+    /* ── DIVIDER ── */
+    .divider {
+      width: 48px; height: 3px;
+      background: var(--accent);
+      border-radius: 2px;
+      margin-bottom: 24px;
+    }
 
-/* Period toggle */
-.period-bar { display:flex; gap:5px; margin-bottom:18px; align-items:center; }
-.period-bar span { font-size:11px; color:#4a5568; margin-right:4px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; }
-.period-btn { padding:5px 14px; border-radius:6px; border:1px solid #2d3748; background:#1e2535; color:#64748b; font-size:12px; cursor:pointer; font-weight:600; transition:all .15s; }
-.period-btn.active { background:#6366f1; border-color:#6366f1; color:#fff; }
+    /* ── BOTTOM ROW ── */
+    .bottom-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 24px;
+      flex-shrink: 0;
+    }
 
-/* Funnel visual */
-.funnel-card { background:#141820; border:1px solid #2d3748; border-radius:11px; padding:18px; margin-bottom:18px; }
-.funnel-card h3 { font-size:10px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.8px; margin-bottom:14px; }
-/* Source inputs row */
-.source-row { display:flex; gap:8px; margin-bottom:12px; padding-bottom:12px; border-bottom:1px solid #1e2535; }
-.src-box { flex:1; background:#1a2030; border:1px solid #2d3748; border-radius:8px; padding:10px; text-align:center; }
-.src-box .sb-label { font-size:10px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
-.src-box .sb-val { font-size:18px; font-weight:700; color:#f1f5f9; }
-.src-box .sb-unit { font-size:10px; color:#64748b; }
-.src-arrow { display:flex; align-items:center; justify-content:center; color:#4a5568; font-size:14px; padding-top:14px; }
-.src-total { background:linear-gradient(135deg,#1e1b4b22,#1a2030); border:1px solid #6366f133; border-radius:8px; padding:10px; text-align:center; flex:1.2; }
-.src-total .sb-label { font-size:10px; color:#818cf8; text-transform:uppercase; letter-spacing:.5px; margin-bottom:5px; }
-.src-total .sb-val { font-size:20px; font-weight:800; color:#818cf8; }
+    .dot-wrap {
+      display: flex; gap: 7px;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--border);
+      transition: background 0.3s, transform 0.3s;
+    }
+    .dot.active { background: var(--accent); transform: scale(1.25); }
+    .dot.done { background: var(--accent); opacity: 0.4; }
 
-/* Funnel stages */
-.fv-stages { display:flex; align-items:flex-end; gap:0; }
-.fv-stage { flex:1; text-align:center; position:relative; padding:0 4px; }
-.fv-stage + .fv-stage::before { content:'→'; position:absolute; left:-8px; bottom:56px; color:#2d3748; font-size:14px; }
-.fv-bar-wrap { height:70px; display:flex; align-items:flex-end; justify-content:center; margin-bottom:6px; }
-.fv-bar { width:75%; border-radius:5px 5px 0 0; }
-.fv-num  { font-size:17px; font-weight:700; color:#f1f5f9; }
-.fv-unit { font-size:10px; color:#64748b; margin-top:1px; }
-.fv-name { font-size:10px; color:#94a3b8; margin-top:5px; font-weight:600; text-transform:uppercase; letter-spacing:.4px; }
-.fv-rate { font-size:10px; margin-top:2px; }
-.fv-drop { font-size:10px; color:#f43f5e; margin-top:1px; }
+    .nav-btns { display: flex; gap: 12px; align-items: center; }
 
-/* Goal resolver */
-.goal-resolver { background:#141820; border:1px solid #2d3748; border-radius:11px; padding:16px; margin-bottom:18px; }
-.goal-resolver h3 { font-size:10px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.8px; margin-bottom:12px; }
-.resolver-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-.rc { background:#1a2030; border-radius:8px; padding:12px; border:1px solid #2d3748; }
-.rc.pa { border-color:#6366f133; } .rc.pb { border-color:#22d3ee33; } .rc.pc { border-color:#10b98133; }
-.rc h4 { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.6px; margin-bottom:8px; }
-.rc.pa h4{color:#818cf8;} .rc.pb h4{color:#22d3ee;} .rc.pc h4{color:#10b981;}
-.rc .rbig { font-size:18px; font-weight:700; color:#f1f5f9; }
-.rc .rsub { font-size:10px; color:#64748b; margin-top:1px; }
-.rc .rchg { font-size:11px; color:#f59e0b; margin-top:7px; }
-.rc .rnote { font-size:10px; color:#4a5568; margin-top:2px; }
+    .btn-back {
+      padding: 18px 24px;
+      background: transparent;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      font-size: 18px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+      user-select: none;
+    }
+    .btn-back:active { border-color: var(--accent); color: var(--accent); }
 
-/* KPI cards */
-.kpi-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:18px; }
-.kpi { background:#141820; border:1px solid #2d3748; border-radius:10px; padding:14px 16px; }
-.kpi .kl { font-size:9px; text-transform:uppercase; letter-spacing:.8px; color:#4a5568; font-weight:700; margin-bottom:6px; }
-.kpi .kv { font-size:21px; font-weight:700; color:#f1f5f9; line-height:1; }
-.kpi .ks { font-size:10px; color:#6366f1; margin-top:4px; }
-.kpi.hl { background:linear-gradient(135deg,#1e1b4b,#1a1f3e); border-color:#6366f1; }
+    .btn-next {
+      min-width: 150px;
+      padding: 18px 36px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex; align-items: center; gap: 8px;
+      justify-content: center;
+      transition: background 0.2s, transform 0.1s;
+      user-select: none;
+    }
+    .btn-next:active { transform: scale(0.97); background: #235f6a; }
 
-/* Charts */
-.charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:18px; }
-.cc { background:#141820; border:1px solid #2d3748; border-radius:10px; padding:16px; }
-.cc h3 { font-size:10px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.7px; margin-bottom:12px; }
-.cc.full { grid-column:1/-1; }
+    /* ── NAME INPUT ── */
+    .name-block { margin-bottom: 20px; }
+    .name-label {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+    #patient-name {
+      width: 100%;
+      max-width: 480px;
+      padding: 16px 20px;
+      font-size: 20px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      color: var(--brand);
+      font-family: inherit;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    #patient-name:focus { border-color: var(--accent); }
+    #patient-name.filled { border-color: var(--accent); }
 
-/* Milestones */
-.milestones { background:#141820; border:1px solid #2d3748; border-radius:10px; padding:16px; margin-bottom:18px; }
-.milestones h3 { font-size:10px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.7px; margin-bottom:12px; }
-.ms-row { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
-.ms-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
-.ms-lbl { font-size:12px; font-weight:600; color:#f1f5f9; width:60px; flex-shrink:0; }
-.ms-date { font-size:11px; color:#94a3b8; width:90px; flex-shrink:0; }
-.ms-bw { flex:1; background:#1e2535; border-radius:3px; height:5px; overflow:hidden; }
-.ms-b  { height:100%; border-radius:3px; }
-.ms-info { font-size:10px; color:#4a5568; width:160px; text-align:right; flex-shrink:0; }
+    /* ── SIGNATURE ── */
+    .sig-block { margin-bottom: 16px; }
+    .sig-label {
+      font-size: 16px;
+      color: var(--muted);
+      margin-bottom: 10px;
+      font-weight: 500;
+    }
+    #sig-canvas {
+      width: 100%;
+      height: 180px;
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      background: #fafcfd;
+      cursor: crosshair;
+      display: block;
+      touch-action: none;
+    }
+    #sig-canvas.signed { border-color: var(--accent); }
 
-/* Table */
-.table-card { background:#141820; border:1px solid #2d3748; border-radius:10px; overflow:hidden; margin-bottom:18px; }
-.table-card h3 { font-size:10px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.7px; padding:13px 16px 10px; border-bottom:1px solid #2d3748; }
-table { width:100%; border-collapse:collapse; font-size:12px; }
-thead th { background:#1a2030; color:#4a5568; font-weight:700; font-size:10px; text-transform:uppercase; letter-spacing:.5px; padding:8px 12px; text-align:right; white-space:nowrap; }
-thead th:first-child { text-align:left; }
-tbody tr { border-bottom:1px solid #1a2030; }
-tbody tr:hover { background:#1a2030; }
-tbody td { padding:7px 12px; text-align:right; color:#94a3b8; }
-tbody td:first-child { text-align:left; color:#64748b; }
-.td-rev { color:#f1f5f9!important; font-weight:600; }
-.td-total-rev { color:#818cf8!important; font-weight:700; }
-.td-hit { background:rgba(99,102,241,.06)!important; }
-.badge { background:#6366f1; color:#fff; font-size:9px; padding:1px 5px; border-radius:7px; font-weight:700; margin-left:4px; vertical-align:middle; }
+    .sig-actions {
+      display: flex;
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .btn-clear {
+      padding: 12px 22px;
+      background: transparent;
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      font-size: 16px;
+      color: var(--muted);
+      cursor: pointer;
+      font-weight: 500;
+      transition: border-color 0.2s;
+    }
+    .btn-clear:active { border-color: var(--accent); }
 
-/* Comparison */
-.comparison { background:#141820; border:1px solid #2d3748; border-radius:10px; padding:16px; margin-bottom:18px; }
-.comparison h3 { font-size:10px; font-weight:700; color:#4a5568; text-transform:uppercase; letter-spacing:.7px; margin-bottom:12px; }
-.comp-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
-.comp-card { background:#1a2030; border:1px solid #2d3748; border-radius:8px; padding:12px; }
-.comp-card.active-s { border-color:#6366f1; }
-.comp-card h4 { font-size:10px; font-weight:700; color:#6366f1; text-transform:uppercase; letter-spacing:.5px; margin-bottom:9px; }
-.cs { margin-bottom:5px; }
-.cs .csl { font-size:10px; color:#4a5568; }
-.cs .csv { font-size:12px; font-weight:600; color:#f1f5f9; }
+    .btn-confirm {
+      flex: 1;
+      padding: 16px 32px;
+      background: var(--brand);
+      color: #fff;
+      border: none;
+      border-radius: 12px;
+      font-size: 18px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      opacity: 0.4;
+      pointer-events: none;
+    }
+    .btn-confirm.ready { opacity: 1; pointer-events: all; }
+    .btn-confirm.ready:active { transform: scale(0.97); background: #0f2533; }
 
-/* Care plan tab */
-.care-plan-view { max-width:660px; }
-.cp-header { display:flex; gap:12px; margin-bottom:16px; }
-.cp-opt { flex:1; background:#141820; border:1px solid #2d3748; border-radius:11px; padding:18px; text-align:center; }
-.cp-opt h4 { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.8px; color:#64748b; margin-bottom:8px; }
-.cp-opt .bprice { font-size:32px; font-weight:800; color:#f1f5f9; }
-.cp-opt .bprice span { font-size:14px; color:#64748b; }
-.cp-opt .save-pill { display:inline-block; background:#6366f122; color:#818cf8; font-size:11px; font-weight:600; padding:3px 9px; border-radius:11px; margin-top:6px; }
-.cp-opt .cp-note { font-size:11px; color:#64748b; margin-top:4px; }
-.cp-bd { background:#141820; border:1px solid #2d3748; border-radius:11px; overflow:hidden; }
-.cp-bd-hdr { padding:12px 16px; border-bottom:1px solid #2d3748; font-size:12px; font-weight:600; color:#94a3b8; }
-.cp-brow { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-bottom:1px solid #1a2535; }
-.cp-brow .cpn { font-size:13px; color:#e2e8f0; }
-.cp-brow .cpqp { font-size:11px; color:#64748b; margin-top:2px; }
-.cp-brow .cpa { font-size:13px; font-weight:600; color:#818cf8; }
-.cp-tot { display:flex; justify-content:space-between; padding:12px 16px; background:#1a2030; border-top:1px solid #2d3748; }
-.cp-tot span { font-size:14px; font-weight:700; color:#f1f5f9; }
-.cp-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px; }
-.cp-stat { background:#141820; border:1px solid #2d3748; border-radius:9px; padding:12px; text-align:center; }
-.cp-stat .csl { font-size:9px; color:#64748b; text-transform:uppercase; letter-spacing:.5px; margin-bottom:4px; }
-.cp-stat .csv { font-size:20px; font-weight:700; color:#f1f5f9; }
-.cp-stat .css { font-size:10px; color:#6366f1; margin-top:2px; }
-</style>
+    .error-msg {
+      font-size: 14px;
+      color: #c0392b;
+      margin-top: 8px;
+      display: none;
+    }
+    .error-msg.show { display: block; }
+
+    /* ── DONE SCREEN ── */
+    #screen-done {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: var(--brand);
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 60px;
+      z-index: 200;
+    }
+    #screen-done.show { display: flex; }
+    #screen-done h1 { color: #fff; font-size: 38px; margin-bottom: 18px; }
+    #screen-done p { color: rgba(255,255,255,0.75); font-size: 20px; max-width: 500px; margin: 0 auto; }
+    .done-check {
+      width: 90px; height: 90px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.15);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 44px;
+      margin-bottom: 32px;
+    }
+
+    /* ── MOBILE ── */
+    @media (max-width: 600px) {
+      html, body { overflow: auto; height: auto; }
+
+      #screen-wrap {
+        position: relative;
+        top: 0; bottom: auto;
+        height: auto;
+        overflow: visible;
+      }
+
+      .screen {
+        position: relative;
+        transform: none !important;
+        opacity: 0;
+        pointer-events: none;
+        padding: 28px 22px 32px;
+        min-height: calc(100vh - 56px);
+        overflow: visible;
+        display: none;
+      }
+      .screen.active {
+        display: flex;
+        opacity: 1;
+        pointer-events: all;
+      }
+      .screen.exit-left,
+      .screen.exit-right { display: none; }
+
+      h1 { font-size: 26px; margin-bottom: 14px; }
+      h2 { font-size: 22px; margin-bottom: 12px; }
+      p { font-size: 16px; margin-bottom: 10px; }
+      p.muted { font-size: 15px; }
+      .icon-circle { width: 52px; height: 52px; font-size: 22px; margin-bottom: 18px; }
+      .step-label { margin-bottom: 12px; }
+      .divider { margin-bottom: 16px; }
+      .btn-next { min-width: 110px; padding: 14px 22px; font-size: 16px; }
+      .btn-back { padding: 14px 18px; font-size: 16px; }
+      #sig-canvas { height: 130px; }
+      #patient-name { font-size: 16px; padding: 13px 16px; max-width: 100%; }
+      .btn-confirm { font-size: 16px; padding: 14px 20px; }
+      .bottom-row { padding-top: 20px; }
+    }
+  </style>
 </head>
 <body>
 
-<header>
-  <div class="left">
-    <div class="logo">📈</div>
-    <div>
-      <h1>Practice Revenue Forecaster</h1>
-      <p>The Remarkable Practice · Dr. Oz · $5M Goal</p>
-    </div>
-  </div>
-  <div class="top-tabs">
-    <button class="active" onclick="switchTab('forecast')">Forecast</button>
-    <button onclick="switchTab('careplan')">Care Plan</button>
-  </div>
-</header>
+<div id="progress-bar"><div id="progress-fill"></div></div>
+<div id="logo-strip"><span>The Back Dr</span></div>
 
-<div class="layout">
-<!-- ════════════════════ SIDEBAR ════════════════════ -->
-<aside class="sidebar">
+<div id="screen-wrap">
 
-  <!-- Scenario selector -->
-  <div class="scenario-strip">
-    <div class="scenario-tabs">
-      <button class="active" onclick="setScenario(0)">Scenario A</button>
-      <button onclick="setScenario(1)">Scenario B</button>
-      <button onclick="setScenario(2)">Scenario C</button>
+  <!-- Screen 1 -->
+  <div class="screen active" data-index="0">
+    <div class="screen-content">
+      <div class="icon-circle">🌿</div>
+      <h1>Your Path to<br>Better Results</h1>
+      <div class="divider"></div>
+      <p>Help you move better.<br>Feel better. Live better. Stand stronger.</p>
     </div>
-  </div>
-
-  <!-- Quick stats -->
-  <div class="quick-stats">
-    <div class="qs-item"><div class="qsl">BRPs/wk</div><div class="qsv" id="qs-brps">—</div></div>
-    <div class="qs-item"><div class="qsl">$/Visit</div><div class="qsv" id="qs-cpv">—</div></div>
-    <div class="qs-item"><div class="qsl">Annual Run Rate</div><div class="qsv" id="qs-arr">—</div></div>
-  </div>
-
-  <!-- ── BLOCK: Current State ── -->
-  <div class="sb-block">
-    <div class="sb-block-header" onclick="toggleBlock(this)">
-      <span class="sb-block-title">Current State</span>
-      <span class="sb-block-arrow open">▶</span>
-    </div>
-    <div class="sb-block-body open">
-      <div class="field"><label>Start Date</label><input type="month" id="startDate" value="2026-05" oninput="liveUpdate()"></div>
-      <div class="field"><label>Current TAP (Total Active Patients)</label><input type="number" id="currentTAP" value="740" oninput="liveUpdate()"></div>
-      <div class="field"><label>Weekly Patient Visits</label><input type="number" id="weeklyVisits" value="550" oninput="liveUpdate()"></div>
-      <div class="field"><label>Weekly Collections ($)</label>
-        <div class="unit-wrap"><input type="number" id="weeklyCollections" value="52000" oninput="liveUpdate()"><span class="u">/wk</span></div>
-      </div>
-      <div class="pill-row"><span class="pl">Actual $/Visit</span><span class="pv" id="d-cpv">$94.55</span></div>
-      <div class="pill-row"><span class="pl">Visit Frequency (visits/pt/wk)</span><span class="pv" id="d-freq">0.743</span></div>
-    </div>
-  </div>
-
-  <!-- ── BLOCK: Lead Sources ── -->
-  <div class="sb-block">
-    <div class="sb-block-header" onclick="toggleBlock(this)">
-      <span class="sb-block-title">Lead Sources</span>
-      <span class="sb-block-arrow open">▶</span>
-    </div>
-    <div class="sb-block-body open">
-      <table class="lead-table">
-        <thead><tr><th>Source</th><th>Leads/wk</th></tr></thead>
-        <tbody>
-          <tr><td><span class="src-label">🏠 Internal</span></td><td><input type="number" id="leadsInternal" value="30" oninput="liveUpdate()"></td></tr>
-          <tr><td><span class="src-label">💻 Digital</span></td><td><input type="number" id="leadsDigital" value="30" oninput="liveUpdate()"></td></tr>
-          <tr><td><span class="src-label">🌐 External</span></td><td><input type="number" id="leadsExternal" value="14" oninput="liveUpdate()"></td></tr>
-        </tbody>
-      </table>
-      <div class="lead-total-row">
-        <span class="ltl">Total NP Exams Scheduled</span>
-        <span class="ltv" id="leadsTotal">74/wk</span>
+    <div class="bottom-row">
+      <div class="dot-wrap" id="dots"></div>
+      <div class="nav-btns">
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
       </div>
     </div>
   </div>
 
-  <!-- ── BLOCK: Funnel Rates ── -->
-  <div class="sb-block">
-    <div class="sb-block-header" onclick="toggleBlock(this)">
-      <span class="sb-block-title">Funnel Conversion Rates</span>
-      <span class="sb-block-arrow open">▶</span>
+  <!-- Screen 2 -->
+  <div class="screen" data-index="1">
+    <div class="screen-content">
+      <div class="step-label">How results happen</div>
+      <h2>Practice members who achieve the best results here do three things well.</h2>
+      <div class="divider"></div>
+      <p class="muted">Tap next to learn what they are.</p>
     </div>
-    <div class="sb-block-body open">
-      <div class="rate-grid">
-        <div class="rate-item"><label>Show Rate</label><div class="unit-wrap"><input type="number" id="showRate" value="95" step="1" min="1" max="100" oninput="liveUpdate()"><span class="u">%</span></div></div>
-        <div class="rate-item"><label>Stick Rate (ROF)</label><div class="unit-wrap"><input type="number" id="stickRate" value="95" step="1" min="1" max="100" oninput="liveUpdate()"><span class="u">%</span></div></div>
-        <div class="rate-item"><label>BRP Conv Rate</label><div class="unit-wrap"><input type="number" id="convRate" value="60" step="1" min="1" max="100" oninput="liveUpdate()"><span class="u">%</span></div></div>
-        <div class="rate-item"><label>Reactivation (% TAP)</label><div class="unit-wrap"><input type="number" id="reactRate" value="1" step="0.1" min="0" oninput="liveUpdate()"><span class="u">%</span></div></div>
-      </div>
-      <div class="pill-row"><span class="pl">Overall funnel rate</span><span class="pv" id="d-overall">—</span></div>
-      <div class="pill-row"><span class="pl">BRPs started / week</span><span class="pv" id="d-brps">—</span></div>
-      <div class="pill-row"><span class="pl">BRPs started / month</span><span class="pv" id="d-brpsmo">—</span></div>
-    </div>
-  </div>
-
-  <!-- ── BLOCK: Revenue ── -->
-  <div class="sb-block">
-    <div class="sb-block-header" onclick="toggleBlock(this)">
-      <span class="sb-block-title">Revenue per Visit</span>
-      <span class="sb-block-arrow open">▶</span>
-    </div>
-    <div class="sb-block-body open">
-      <div class="cpv-toggle">
-        <button id="cpvAuto" class="active" onclick="setCPVMode('auto')">Auto (Care Plan)</button>
-        <button id="cpvManual" onclick="setCPVMode('manual')">Manual Override</button>
-      </div>
-      <div id="cpvAutoVal" class="pill-row" style="margin-bottom:8px">
-        <span class="pl">Care plan $/visit</span>
-        <span class="pv" id="d-cp-cpv">$91.04</span>
-      </div>
-      <div id="cpvManualField" class="field" style="display:none">
-        <label>Current $/Visit (manual)</label>
-        <div class="unit-wrap"><input type="number" id="manualCPV" value="94.55" step="0.01" oninput="liveUpdate()"><span class="u">$/v</span></div>
-      </div>
-      <div class="field"><label>Target $/Visit</label>
-        <div class="unit-wrap"><input type="number" id="targetCPV" value="91.04" step="0.01" oninput="liveUpdate()"><span class="u">$/v</span></div>
-      </div>
-      <div class="field"><label>Ramp to target (months)</label>
-        <input type="number" id="revRamp" value="3" min="0">
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
       </div>
     </div>
   </div>
 
-  <!-- ── BLOCK: Additional Income ── -->
-  <div class="sb-block">
-    <div class="sb-block-header" onclick="toggleBlock(this)">
-      <span class="sb-block-title">Additional Income Streams</span>
-      <span class="sb-block-arrow">▶</span>
+  <!-- Screen 3 -->
+  <div class="screen" data-index="2">
+    <div class="screen-content">
+      <div class="step-label">1 of 3</div>
+      <div class="icon-circle">📅</div>
+      <h2>Consistency</h2>
+      <div class="divider"></div>
+      <p>Progress happens through consistent care. Every visit builds on the last.</p>
+      <p class="muted">If you can't attend, please reschedule within the same week to keep your progress moving.</p>
     </div>
-    <div class="sb-block-body">
-      <div class="rev-stream"><span class="rs-name">💆 Massage Services</span><input class="rs-input" id="revMassage" type="number" value="0" oninput="liveUpdate()"><span class="rs-unit">/wk</span></div>
-      <div class="rev-stream"><span class="rs-name">🩻 X-Ray Income</span><input class="rs-input" id="revXray" type="number" value="0" oninput="liveUpdate()"><span class="rs-unit">/wk</span></div>
-      <div class="rev-stream"><span class="rs-name">📦 Products</span><input class="rs-input" id="revProducts" type="number" value="0" oninput="liveUpdate()"><span class="rs-unit">/wk</span></div>
-      <div class="rev-stream"><span class="rs-name">💊 Supplements</span><input class="rs-input" id="revSupplements" type="number" value="0" oninput="liveUpdate()"><span class="rs-unit">/wk</span></div>
-      <div class="rev-stream"><span class="rs-name">➕ Other</span><input class="rs-input" id="revOther" type="number" value="0" oninput="liveUpdate()"><span class="rs-unit">/wk</span></div>
-      <div class="rev-total"><span class="rtl">Additional weekly total</span><span class="rtv" id="d-addrev">$0/wk</span></div>
-      <div class="pill-row" style="margin-top:5px"><span class="pl">Additional annual total</span><span class="pv" id="d-addann">$0</span></div>
-    </div>
-  </div>
-
-  <!-- ── BLOCK: Retention & Churn ── -->
-  <div class="sb-block">
-    <div class="sb-block-header" onclick="toggleBlock(this)">
-      <span class="sb-block-title">Retention & Churn</span>
-      <span class="sb-block-arrow open">▶</span>
-    </div>
-    <div class="sb-block-body open">
-      <div class="field"><label>Monthly Churn Rate (% of TAP)</label>
-        <div class="unit-wrap"><input type="number" id="churnRate" value="4" step="0.1" min="0" max="100" oninput="liveUpdate()"><span class="u">%/mo</span></div>
-      </div>
-      <div class="pill-row"><span class="pl">Patients lost / month (est.)</span><span class="pv" id="d-churnabs">~30/mo</span></div>
-      <div class="pill-row"><span class="pl">Avg patient tenure</span><span class="pv" id="d-tenure">25 months</span></div>
-    </div>
-  </div>
-
-  <!-- ── BLOCK: Forecast Settings ── -->
-  <div class="sb-block">
-    <div class="sb-block-header" onclick="toggleBlock(this)">
-      <span class="sb-block-title">Forecast Settings</span>
-      <span class="sb-block-arrow open">▶</span>
-    </div>
-    <div class="sb-block-body open">
-      <div class="field"><label>Revenue Target ($)</label><input type="number" id="revenueTarget" value="5000000" oninput="liveUpdate()"></div>
-      <div class="field"><label>Forecast Horizon (months)</label><input type="number" id="forecastMonths" value="30" min="6" max="60"></div>
-    </div>
-  </div>
-
-  <div class="run-wrap">
-    <button class="btn-run" onclick="runForecast()">Run Forecast →</button>
-  </div>
-
-</aside>
-
-<!-- ════════════════════ MAIN ════════════════════ -->
-<main class="main">
-
-  <!-- FORECAST TAB -->
-  <div id="tab-forecast" class="tab-content active">
-
-    <!-- Period toggle -->
-    <div class="period-bar">
-      <span>View:</span>
-      <button class="period-btn" onclick="setPeriod('weekly')">Weekly</button>
-      <button class="period-btn active" onclick="setPeriod('monthly')">Monthly</button>
-      <button class="period-btn" onclick="setPeriod('quarterly')">Quarterly</button>
-      <button class="period-btn" onclick="setPeriod('annual')">Annual</button>
-    </div>
-
-    <!-- FUNNEL VISUAL -->
-    <div class="funnel-card">
-      <h3>Weekly Lead Funnel</h3>
-      <div class="source-row" id="sourceRow"></div>
-      <div class="fv-stages" id="funnelViz"></div>
-    </div>
-
-    <!-- GOAL RESOLVER -->
-    <div class="goal-resolver">
-      <h3>Paths to $<span id="gr-target">5M</span> &nbsp;·&nbsp; Weekly target: $<span id="gr-weekly">96,154</span></h3>
-      <div class="resolver-grid" id="resolverGrid"></div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpi-grid" id="kpiGrid"></div>
-
-    <!-- CHARTS -->
-    <div class="charts-grid">
-      <div class="cc full"><h3>Revenue Trajectory</h3><canvas id="revenueChart" height="80"></canvas></div>
-      <div class="cc"><h3>TAP & Weekly Visits</h3><canvas id="tapChart" height="160"></canvas></div>
-      <div class="cc"><h3>BRPs vs Churned</h3><canvas id="flowChart" height="160"></canvas></div>
-    </div>
-
-    <!-- MILESTONES -->
-    <div class="milestones"><h3>Revenue Milestones</h3><div id="milestoneList"></div></div>
-
-    <!-- COMPARISON -->
-    <div class="comparison"><h3>Scenario Comparison</h3><div class="comp-grid" id="compGrid"></div></div>
-
-    <!-- TABLE -->
-    <div class="table-card">
-      <h3 id="tableTitle">Monthly Breakdown</h3>
-      <div style="overflow-x:auto">
-        <table>
-          <thead id="tableHead"></thead>
-          <tbody id="forecastTable"></tbody>
-        </table>
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
       </div>
     </div>
-
   </div>
 
-  <!-- CARE PLAN TAB -->
-  <div id="tab-careplan" class="tab-content care-plan-view">
-    <div class="cp-header" id="cpHeader"></div>
-    <div class="cp-bd">
-      <div class="cp-bd-hdr">Full Breakdown</div>
-      <div id="cpRows"></div>
-      <div class="cp-tot"><span>Total</span><span id="cpTotalAmt"></span></div>
+  <!-- Screen 4 -->
+  <div class="screen" data-index="3">
+    <div class="screen-content">
+      <div class="step-label">2 of 3</div>
+      <div class="icon-circle">💬</div>
+      <h2>Communication</h2>
+      <div class="divider"></div>
+      <p>If something changes between visits, let us know so we can guide your care.</p>
+      <p class="muted">For more detailed conversations, we offer dedicated times where we can give you the attention and privacy you deserve.</p>
     </div>
-    <div class="cp-stats" id="cpStats"></div>
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
+    </div>
   </div>
 
-</main>
+  <!-- Screen 5 -->
+  <div class="screen" data-index="4">
+    <div class="screen-content">
+      <div class="step-label">3 of 3</div>
+      <div class="icon-circle">🧠</div>
+      <h2>Understanding</h2>
+      <div class="divider"></div>
+      <p>Better results come from understanding your spine and following your care recommendations.</p>
+    </div>
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 6 -->
+  <div class="screen" data-index="5">
+    <div class="screen-content">
+      <div class="icon-circle">🔗</div>
+      <h2>Appointments</h2>
+      <div class="divider"></div>
+      <p>Manage your visits anytime through your online booking portal.</p>
+      <p class="muted">Your personal access link was sent earlier today by email and SMS.</p>
+    </div>
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 7 – No Show Fee -->
+  <div class="screen" data-index="6">
+    <div class="screen-content">
+      <div class="icon-circle">💳</div>
+      <h2>No-Show Fee</h2>
+      <div class="divider"></div>
+      <p>If you miss an appointment without contacting us, a no-show fee equal to the full appointment fee will be charged.</p>
+      <p class="muted">This must be settled within 5 business days, otherwise it will be added to your outstanding balance.</p>
+    </div>
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 8 – 3 Strike Rule -->
+  <div class="screen" data-index="7">
+    <div class="screen-content">
+      <div class="icon-circle">⚠️</div>
+      <h2>Our 3-Strike Policy</h2>
+      <div class="divider"></div>
+      <p>If you miss three appointments without contacting us, we can only interpret this to mean that your commitment to your care has changed.</p>
+      <p class="muted">At that point, your care will be cancelled and any outstanding charges will need to be settled.</p>
+    </div>
+    <div class="bottom-row">
+      <div class="dot-wrap"></div>
+      <div class="nav-btns">
+        <button class="btn-back" onclick="prevScreen()">←</button>
+        <button class="btn-next" onclick="nextScreen()">Next &nbsp;→</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen 9 – Name + Signature -->
+  <div class="screen" data-index="8">
+    <div class="screen-content">
+      <h2>Our commitment</h2>
+      <div class="divider"></div>
+      <p>We're here to support you every step of the way. When care, consistency and clear communication come together, results follow.</p>
+
+      <div class="name-block">
+        <div class="name-label">Full name</div>
+        <input type="text" id="patient-name" placeholder="Enter your full name" autocomplete="off" oninput="onNameInput()" />
+      </div>
+
+      <div class="sig-block">
+        <div class="sig-label">I understand my role in achieving the best possible results from my care. ✍️</div>
+        <canvas id="sig-canvas" width="900" height="180"></canvas>
+        <div class="sig-actions">
+          <button class="btn-clear" onclick="clearSig()">Clear</button>
+          <button class="btn-confirm" id="btn-confirm" onclick="confirmSig()">Confirm &nbsp;✓</button>
+        </div>
+        <div class="error-msg" id="error-msg">Please enter your name and sign above.</div>
+      </div>
+    </div>
+    <div class="bottom-row" style="justify-content: flex-start;">
+      <button class="btn-back" onclick="prevScreen()">←</button>
+    </div>
+  </div>
+
+</div>
+
+<!-- Done screen -->
+<div id="screen-done">
+  <div class="done-check">✓</div>
+  <h1>You're all set.</h1>
+  <p>Welcome to The Back Dr. We're looking forward to working with you.</p>
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════
-// CARE PLAN
-// ═══════════════════════════════════════════════════
-const carePlan = [
-  { name:'Chiropractic Adjustment', qty:36, price:84  },
-  { name:'Spinal Decompression',    qty:24, price:120 },
-  { name:'Progress Exam',           qty:2,  price:42  },
-  { name:'Progress Report',         qty:2,  price:42  },
-  { name:'Re-Examination',          qty:1,  price:42  },
-  { name:'Re-X-ray',               qty:1,  price:42  },
-  { name:'Exercise Program',        qty:3,  price:42  },
-];
-const PIF_DISCOUNT = 632, DD_WEEKS = 18;
-const cpTotal  = () => carePlan.reduce((s,r)=>s+r.qty*r.price,0);
-const cpVisits = () => carePlan.reduce((s,r)=>s+r.qty,0);
-const cpCPV    = () => cpTotal()/cpVisits();
+  const SUPABASE_URL = 'https://eqkfbovepgogwvsixkld.supabase.co';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVxa2Zib3ZlcGdvZ3d2c2l4a2xkIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1NDYxOTIsImV4cCI6MjA5NjEyMjE5Mn0.IbcT8DFIquPogcWiDmJURlZnwzlJbIOpdDFyZB8h_Bc';
 
-// ═══════════════════════════════════════════════════
-// STATE
-// ═══════════════════════════════════════════════════
-let cpvMode = 'auto';
-let activePeriod = 'monthly';
-let activeScenario = 0;
-let charts = {};
+  const TOTAL = 9;
+  let current = 0;
+  let sigHasContent = false;
+  let nameHasContent = false;
 
-let scenarios = [
-  { label:'Scenario A',
-    startDate:'2026-05', currentTAP:740, weeklyVisits:550, weeklyCollections:52000,
-    leadsInternal:30, leadsDigital:30, leadsExternal:14,
-    showRate:95, stickRate:95, convRate:60, reactRate:1,
-    churnRate:4, targetCPV:91.04, revRamp:3,
-    manualCPV:94.55, cpvMode:'auto',
-    revMassage:0, revXray:0, revProducts:0, revSupplements:0, revOther:0,
-    revenueTarget:5000000, forecastMonths:30 },
-  { label:'Scenario B',
-    startDate:'2026-05', currentTAP:740, weeklyVisits:550, weeklyCollections:52000,
-    leadsInternal:20, leadsDigital:20, leadsExternal:10,
-    showRate:90, stickRate:90, convRate:55, reactRate:1,
-    churnRate:6, targetCPV:88.55, revRamp:12,
-    manualCPV:88.55, cpvMode:'auto',
-    revMassage:0, revXray:0, revProducts:0, revSupplements:0, revOther:0,
-    revenueTarget:5000000, forecastMonths:30 },
-  { label:'Scenario C',
-    startDate:'2026-05', currentTAP:740, weeklyVisits:550, weeklyCollections:52000,
-    leadsInternal:40, leadsDigital:40, leadsExternal:20,
-    showRate:95, stickRate:95, convRate:65, reactRate:2,
-    churnRate:3, targetCPV:110, revRamp:2,
-    manualCPV:100, cpvMode:'manual',
-    revMassage:500, revXray:300, revProducts:200, revSupplements:200, revOther:0,
-    revenueTarget:5000000, forecastMonths:30 },
-];
-
-// ═══════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════
-function getLeads() {
-  return (+v('leadsInternal')||0) + (+v('leadsDigital')||0) + (+v('leadsExternal')||0);
-}
-function getFunnel() {
-  const leads  = getLeads();
-  const showR  = (v('showRate')||0)/100;
-  const stickR = (v('stickRate')||0)/100;
-  const convR  = (v('convRate')||0)/100;
-  const overall = showR*stickR*convR;
-  return { leads, showR, stickR, convR, overall,
-    showed:  leads*showR,
-    stuck:   leads*showR*stickR,
-    started: leads*showR*stickR*convR };
-}
-function getAdditionalWeekly() {
-  return (+v('revMassage')||0)+(+v('revXray')||0)+(+v('revProducts')||0)+(+v('revSupplements')||0)+(+v('revOther')||0);
-}
-function getCurrentCPV() {
-  return cpvMode==='auto' ? cpCPV() : (+v('manualCPV')||0);
-}
-function v(id) { const el=document.getElementById(id); return el?el.value:0; }
-function fmtRev(val) { return val>=1e6?'$'+(val/1e6).toFixed(2)+'M':'$'+Math.round(val).toLocaleString(); }
-function fmtDate(sy,sm,m) {
-  const tot=sm-1+m; const yr=sy+Math.floor(tot/12); const mo=(tot%12)+1;
-  return new Date(yr,mo-1,1).toLocaleDateString('en-US',{month:'short',year:'numeric'});
-}
-
-// ═══════════════════════════════════════════════════
-// LIVE UPDATE (sidebar derived values)
-// ═══════════════════════════════════════════════════
-function liveUpdate() {
-  const visits = +v('weeklyVisits')||1;
-  const colls  = +v('weeklyCollections')||0;
-  const tap    = +v('currentTAP')||1;
-  const f      = getFunnel();
-  const churn  = +v('churnRate')||0;
-  const addWk  = getAdditionalWeekly();
-
-  set('d-cpv',   '$'+(colls/visits).toFixed(2));
-  set('d-freq',  (visits/tap).toFixed(3));
-  set('leadsTotal', f.leads+'/wk');
-  set('d-overall', (f.overall*100).toFixed(1)+'%');
-  set('d-brps',   f.started.toFixed(1)+'/wk');
-  set('d-brpsmo', (f.started*(52/12)).toFixed(1)+'/mo');
-  set('d-cp-cpv', '$'+cpCPV().toFixed(2));
-  set('d-churnabs','~'+Math.round(tap*(churn/100))+'/mo');
-  set('d-tenure', churn>0 ? Math.round(1/(churn/100))+' months' : '∞');
-  set('d-addrev', '$'+addWk.toLocaleString()+'/wk');
-  set('d-addann', '$'+(addWk*52).toLocaleString());
-
-  // quick stats
-  set('qs-brps', f.started.toFixed(1));
-  set('qs-cpv',  '$'+(cpvMode==='auto'?cpCPV().toFixed(2):(+v('manualCPV')).toFixed(2)));
-  const annRun = (visits/tap)*(tap)*(+v('targetCPV')||91)*52 + addWk*52;
-  set('qs-arr', fmtRev(annRun));
-}
-function set(id,val){ const el=document.getElementById(id); if(el) el.textContent=val; }
-
-// ═══════════════════════════════════════════════════
-// CPV MODE
-// ═══════════════════════════════════════════════════
-function setCPVMode(mode) {
-  cpvMode = mode;
-  document.getElementById('cpvAuto').classList.toggle('active', mode==='auto');
-  document.getElementById('cpvManual').classList.toggle('active', mode==='manual');
-  document.getElementById('cpvAutoVal').style.display   = mode==='auto'   ? 'flex' : 'none';
-  document.getElementById('cpvManualField').style.display = mode==='manual' ? 'block' : 'none';
-  if (mode==='auto') document.getElementById('targetCPV').value = cpCPV().toFixed(2);
-  liveUpdate();
-}
-
-// ═══════════════════════════════════════════════════
-// COLLAPSIBLE BLOCKS
-// ═══════════════════════════════════════════════════
-function toggleBlock(header) {
-  const body  = header.nextElementSibling;
-  const arrow = header.querySelector('.sb-block-arrow');
-  const open  = body.classList.toggle('open');
-  arrow.classList.toggle('open', open);
-}
-
-// ═══════════════════════════════════════════════════
-// FORECAST ENGINE
-// ═══════════════════════════════════════════════════
-function computeForecast(s) {
-  const f       = { showR:s.showRate/100, stickR:s.stickRate/100, convR:s.convRate/100 };
-  f.overall     = f.showR*f.stickR*f.convR;
-  const leads   = s.leadsInternal+s.leadsDigital+s.leadsExternal;
-  const mNewBRP = leads * f.overall * (52/12);
-  const freq    = s.weeklyVisits/s.currentTAP;
-  const churn   = s.churnRate/100;
-  const react   = s.reactRate/100;
-  const ramp    = Math.max(s.revRamp,1);
-  const cpvStart = s.cpvMode==='auto' ? cpCPV() : s.manualCPV;
-  const addWk   = s.revMassage+s.revXray+s.revProducts+s.revSupplements+s.revOther;
-  const [sy,sm] = s.startDate.split('-').map(Number);
-
-  let tap=s.currentTAP, rows=[];
-
-  for (let m=0; m<=s.forecastMonths; m++) {
-    const cpv    = m>=ramp ? s.targetCPV : cpvStart+(s.targetCPV-cpvStart)*(m/ramp);
-    const wkV    = tap*freq;
-    const wkVisitRev = wkV*cpv;
-    const wkTotalRev = wkVisitRev+addWk;
-    const moVisitRev = wkVisitRev*(52/12);
-    const moAddRev   = addWk*(52/12);
-    const moTotalRev = moVisitRev+moAddRev;
-    const annRev     = moTotalRev*12;
-    const churned = tap*churn;
-    const reacts  = tap*react;
-    const newBRPs = m===0?0:mNewBRP;
-    const lbl     = fmtDate(sy,sm,m);
-    const totalM  = sm-1+m;
-    const yr      = sy+Math.floor(totalM/12);
-    const qtr     = 'Q'+(Math.ceil(((totalM%12)+1)/3))+' '+yr;
-
-    rows.push({
-      m, tap:Math.round(tap), newBRPs:Math.round(newBRPs),
-      churned:Math.round(churned), cpv:+cpv.toFixed(2),
-      wkVisits:Math.round(wkV), wkVisitRev:Math.round(wkVisitRev),
-      wkTotalRev:Math.round(wkTotalRev), addWk:Math.round(addWk),
-      moVisitRev:Math.round(moVisitRev), moAddRev:Math.round(moAddRev),
-      moTotalRev:Math.round(moTotalRev), annRev:Math.round(annRev),
-      lbl, yr, qtr, leadsWk:leads
+  function buildDots() {
+    document.querySelectorAll('.dot-wrap').forEach(wrap => {
+      wrap.innerHTML = '';
+      for (let i = 0; i < TOTAL; i++) {
+        const d = document.createElement('div');
+        d.className = 'dot' + (i === current ? ' active' : i < current ? ' done' : '');
+        wrap.appendChild(d);
+      }
     });
-    tap = tap - churned + newBRPs + reacts;
   }
-  return rows;
-}
 
-function aggregatePeriod(rows, period) {
-  if (period==='monthly') return rows;
-  if (period==='weekly')  return rows; // show monthly ÷ 4.333 in display
-  if (period==='quarterly') {
-    const map={};
-    rows.forEach(r=>{ if(!map[r.qtr]){map[r.qtr]={lbl:r.qtr,tap:0,newBRPs:0,churned:0,wkVisitRev:0,wkTotalRev:0,moVisitRev:0,moAddRev:0,moTotalRev:0,annRev:0,cpv:0,wkVisits:0,count:0,leadsWk:r.leadsWk};}
-      const q=map[r.qtr]; q.tap=r.tap; q.newBRPs+=r.newBRPs; q.churned+=r.churned; q.moVisitRev+=r.moVisitRev; q.moAddRev+=r.moAddRev; q.moTotalRev+=r.moTotalRev; q.wkVisits=r.wkVisits; q.cpv=r.cpv; q.count++; q.annRev=r.annRev; });
-    return Object.values(map).map(q=>({...q, annRev:q.moTotalRev*4}));
+  function updateProgress() {
+    const pct = ((current + 1) / TOTAL) * 100;
+    document.getElementById('progress-fill').style.width = pct + '%';
+    // Scroll to top on mobile when changing screens
+    window.scrollTo(0, 0);
   }
-  if (period==='annual') {
-    const map={};
-    rows.forEach(r=>{ if(!map[r.yr]){map[r.yr]={lbl:''+r.yr,tap:0,newBRPs:0,churned:0,moVisitRev:0,moAddRev:0,moTotalRev:0,cpv:0,wkVisits:0,count:0,leadsWk:r.leadsWk};}
-      const a=map[r.yr]; a.tap=r.tap; a.newBRPs+=r.newBRPs; a.churned+=r.churned; a.moVisitRev+=r.moVisitRev; a.moAddRev+=r.moAddRev; a.moTotalRev+=r.moTotalRev; a.wkVisits=r.wkVisits; a.cpv=r.cpv; a.count++;});
-    return Object.values(map).map(a=>({...a, annRev:a.moTotalRev}));
+
+  function nextScreen() {
+    if (current >= TOTAL - 1) return;
+    const screens = document.querySelectorAll('.screen');
+    screens[current].classList.add('exit-left');
+    screens[current].classList.remove('active');
+    current++;
+    screens[current].classList.add('active');
+    buildDots();
+    updateProgress();
+    setTimeout(() => screens[current - 1].classList.remove('exit-left'), 400);
   }
-}
 
-function findMS(rows, target) { return rows.find(r=>r.annRev>=target)||null; }
+  function prevScreen() {
+    if (current <= 0) return;
+    const screens = document.querySelectorAll('.screen');
+    screens[current].classList.add('exit-right');
+    screens[current].classList.remove('active');
+    current--;
+    screens[current].classList.add('active');
+    buildDots();
+    updateProgress();
+    setTimeout(() => screens[current + 1].classList.remove('exit-right'), 400);
+  }
 
-// ═══════════════════════════════════════════════════
-// RENDER
-// ═══════════════════════════════════════════════════
-function runForecast() {
-  saveCurrentInputs();
-  liveUpdate();
-  renderFunnelViz();
-  renderGoalResolver();
+  // Swipe support (both directions)
+  let touchStartX = 0;
+  document.getElementById('screen-wrap').addEventListener('touchstart', e => {
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  document.getElementById('screen-wrap').addEventListener('touchend', e => {
+    const dx = touchStartX - e.changedTouches[0].clientX;
+    if (dx > 60 && current < TOTAL - 1) nextScreen();
+    if (dx < -60 && current > 0) prevScreen();
+  }, { passive: true });
 
-  const s = scenarios[activeScenario];
-  const rows = computeForecast(s);
+  // Name input
+  function onNameInput() {
+    const val = document.getElementById('patient-name').value.trim();
+    nameHasContent = val.length > 0;
+    document.getElementById('patient-name').classList.toggle('filled', nameHasContent);
+    checkReady();
+  }
 
-  renderKPIs(rows,s);
-  renderCharts(rows,s);
-  renderMilestones(rows,s);
-  renderTable(rows,s);
-  renderComparison();
-}
+  // Signature
+  const canvas = document.getElementById('sig-canvas');
+  const ctx = canvas.getContext('2d');
+  let drawing = false;
 
-function renderFunnelViz() {
-  const f   = getFunnel();
-  const int = +v('leadsInternal')||0;
-  const dig = +v('leadsDigital')||0;
-  const ext = +v('leadsExternal')||0;
+  function getPos(e) {
+    const r = canvas.getBoundingClientRect();
+    const scaleX = canvas.width / r.width;
+    const scaleY = canvas.height / r.height;
+    if (e.touches) {
+      return {
+        x: (e.touches[0].clientX - r.left) * scaleX,
+        y: (e.touches[0].clientY - r.top) * scaleY
+      };
+    }
+    return {
+      x: (e.clientX - r.left) * scaleX,
+      y: (e.clientY - r.top) * scaleY
+    };
+  }
 
-  document.getElementById('sourceRow').innerHTML = `
-    <div class="src-box"><div class="sb-label">🏠 Internal</div><div class="sb-val">${int}</div><div class="sb-unit">leads/wk</div></div>
-    <div class="src-arrow">+</div>
-    <div class="src-box"><div class="sb-label">💻 Digital</div><div class="sb-val">${dig}</div><div class="sb-unit">leads/wk</div></div>
-    <div class="src-arrow">+</div>
-    <div class="src-box"><div class="sb-label">🌐 External</div><div class="sb-val">${ext}</div><div class="sb-unit">leads/wk</div></div>
-    <div class="src-arrow">=</div>
-    <div class="src-total"><div class="sb-label">Total NP Exams</div><div class="sb-val">${f.leads.toFixed(0)}</div><div class="sb-unit">scheduled/wk</div></div>
-  `;
+  function startDraw(e) {
+    e.preventDefault();
+    drawing = true;
+    const p = getPos(e);
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+  }
 
-  const max = f.leads||1;
-  const stages=[
-    { label:'NP Exams\nScheduled', val:f.leads,   unit:'scheduled/wk', color:'#6366f1', rate:null,                           drop:null },
-    { label:'Showed Up',           val:f.showed,  unit:'showed/wk',    color:'#8b5cf6', rate:(f.showR*100).toFixed(0)+'% show',     drop:f.leads-f.showed },
-    { label:'Attended ROF/REX',    val:f.stuck,   unit:'ROF/wk',       color:'#a78bfa', rate:(f.stickR*100).toFixed(0)+'% stick',   drop:f.showed-f.stuck },
-    { label:'BRPs',                val:f.started, unit:'BRPs/wk',      color:'#22d3ee', rate:(f.convR*100).toFixed(0)+'% BRP conv', drop:f.stuck-f.started },
-  ];
-  document.getElementById('funnelViz').innerHTML = stages.map(s=>`
-    <div class="fv-stage">
-      <div class="fv-bar-wrap"><div class="fv-bar" style="height:${Math.max(4,Math.round((s.val/max)*70))}px;background:${s.color}"></div></div>
-      <div class="fv-num">${s.val.toFixed(1)}</div>
-      <div class="fv-unit">${s.unit}</div>
-      <div class="fv-name">${s.label}</div>
-      ${s.rate?`<div class="fv-rate" style="color:${s.color}">${s.rate}</div>`:'<div class="fv-rate"></div>'}
-      ${s.drop!=null?`<div class="fv-drop">−${s.drop.toFixed(1)} dropped</div>`:'<div class="fv-drop"></div>'}
-    </div>`).join('');
-}
+  function draw(e) {
+    if (!drawing) return;
+    e.preventDefault();
+    const p = getPos(e);
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#1a3a4a';
+    ctx.lineTo(p.x, p.y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(p.x, p.y);
+    sigHasContent = true;
+    canvas.classList.add('signed');
+    checkReady();
+  }
 
-function renderGoalResolver() {
-  const visits = +v('weeklyVisits')||550;
-  const colls  = +v('weeklyCollections')||52000;
-  const tap    = +v('currentTAP')||740;
-  const target = +v('revenueTarget')||5000000;
-  const addWk  = getAdditionalWeekly();
-  const cpv    = colls/visits;
-  const freq   = visits/tap;
-  const wkTgt  = target/52 - addWk;  // visit revenue needed
-  set('gr-target', (target/1e6).toFixed(1)+'M');
-  set('gr-weekly',  Math.round(target/52).toLocaleString());
+  function stopDraw() { drawing = false; }
 
-  const visNeeded = wkTgt/cpv;
-  const tapA      = visNeeded/freq;
-  const cpvNeeded = wkTgt/visits;
-  const splitV    = Math.sqrt(wkTgt/cpv*visits);
-  const splitCPV  = wkTgt/splitV;
-  const splitTAP  = splitV/freq;
+  canvas.addEventListener('mousedown', startDraw);
+  canvas.addEventListener('mousemove', draw);
+  canvas.addEventListener('mouseup', stopDraw);
+  canvas.addEventListener('touchstart', startDraw, { passive: false });
+  canvas.addEventListener('touchmove', draw, { passive: false });
+  canvas.addEventListener('touchend', stopDraw);
 
-  document.getElementById('resolverGrid').innerHTML=`
-    <div class="rc pa"><h4>Path A — More Visits</h4>
-      <div class="rbig">${Math.round(visNeeded).toLocaleString()}</div><div class="rsub">visits/week</div>
-      <div class="rchg">↑ ${Math.round(visNeeded-visits).toLocaleString()} more/wk</div>
-      <div class="rnote">TAP needed ~${Math.round(tapA).toLocaleString()}</div>
-      <div class="rnote">Keep $/visit at $${cpv.toFixed(2)}</div>
-    </div>
-    <div class="rc pb"><h4>Path B — Higher $/Visit</h4>
-      <div class="rbig">$${cpvNeeded.toFixed(2)}</div><div class="rsub">per visit</div>
-      <div class="rchg">↑ $${(cpvNeeded-cpv).toFixed(2)}/visit</div>
-      <div class="rnote">Keep ${visits.toLocaleString()} visits/wk</div>
-      ${addWk>0?`<div class="rnote">+ $${(addWk*52).toLocaleString()}/yr additional</div>`:''}
-    </div>
-    <div class="rc pc"><h4>Path C — Both Levers</h4>
-      <div class="rbig">${Math.round(splitV).toLocaleString()} visits</div><div class="rsub">+ $${splitCPV.toFixed(2)}/visit</div>
-      <div class="rchg">↑ ${Math.round(splitV-visits)} visits & ↑ $${(splitCPV-cpv).toFixed(2)}/v</div>
-      <div class="rnote">TAP needed ~${Math.round(splitTAP).toLocaleString()}</div>
-    </div>
-  `;
-}
+  function checkReady() {
+    const btn = document.getElementById('btn-confirm');
+    if (sigHasContent && nameHasContent) {
+      btn.classList.add('ready');
+    } else {
+      btn.classList.remove('ready');
+    }
+  }
 
-function renderKPIs(rows,s) {
-  const f  = getFunnel();
-  const r0 = rows[0], rl=rows[rows.length-1];
-  const g  = findMS(rows,s.revenueTarget);
-  document.getElementById('kpiGrid').innerHTML=`
-    <div class="kpi">
-      <div class="kl">Weekly Rev Now</div>
-      <div class="kv">$${r0.wkTotalRev.toLocaleString()}</div>
-      <div class="ks">${r0.wkVisits} visits + $${r0.addWk}/wk other</div>
-    </div>
-    <div class="kpi hl">
-      <div class="kl">Projected ${rl.lbl}</div>
-      <div class="kv">${fmtRev(rl.annRev)}</div>
-      <div class="ks">$${rl.wkTotalRev.toLocaleString()}/wk · TAP ${rl.tap}</div>
-    </div>
-    <div class="kpi">
-      <div class="kl">$${(s.revenueTarget/1e6).toFixed(0)}M Goal</div>
-      <div class="kv">${g?g.lbl:'Beyond horizon'}</div>
-      <div class="ks">${g?'Month '+g.m+' · TAP '+g.tap:'Adjust inputs'}</div>
-    </div>
-    <div class="kpi">
-      <div class="kl">BRPs / Week</div>
-      <div class="kv">${f.started.toFixed(1)}</div>
-      <div class="ks">${s.leadsInternal+s.leadsDigital+s.leadsExternal} leads · ${(f.overall*100).toFixed(1)}% overall</div>
-    </div>
-  `;
-}
+  function clearSig() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    sigHasContent = false;
+    canvas.classList.remove('signed');
+    checkReady();
+  }
 
-function dc(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
-function bOpts(unit){
-  return{responsive:true,maintainAspectRatio:true,
-    plugins:{legend:{labels:{color:'#94a3b8',font:{size:11},boxWidth:12}},
-      tooltip:{backgroundColor:'#1e2535',titleColor:'#f1f5f9',bodyColor:'#94a3b8',borderColor:'#2d3748',borderWidth:1,
-        callbacks:{label:ctx=>` ${ctx.dataset.label}: ${unit==='$M'?'$'+Number(ctx.raw).toFixed(2)+'M':ctx.raw+(unit?' '+unit:'')}` }}},
-    scales:{x:{ticks:{color:'#64748b',font:{size:10},maxTicksLimit:12},grid:{color:'#1e2535'}},
-            y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e2535'}}}};
-}
+  async function confirmSig() {
+    if (!sigHasContent || !nameHasContent) {
+      document.getElementById('error-msg').classList.add('show');
+      return;
+    }
+    document.getElementById('error-msg').classList.remove('show');
 
-function renderCharts(rows,s){
-  const lbl=rows.map(r=>r.lbl);
-  dc('revenue');
-  charts['revenue']=new Chart(document.getElementById('revenueChart').getContext('2d'),{
-    type:'line',data:{labels:lbl,datasets:[
-      {label:'Visit Revenue ($M)',     data:rows.map(r=>+(r.moVisitRev*12/1e6).toFixed(3)), borderColor:'#6366f1', backgroundColor:'rgba(99,102,241,0.07)',fill:true,tension:.4,pointRadius:2},
-      {label:'Total Revenue ($M)',     data:rows.map(r=>+(r.annRev/1e6).toFixed(3)), borderColor:'#22d3ee', borderDash:[],fill:false,tension:.4,pointRadius:2},
-      {label:`Target $${(s.revenueTarget/1e6).toFixed(0)}M`, data:rows.map(()=>s.revenueTarget/1e6), borderColor:'#f59e0b',borderDash:[6,4],borderWidth:1.5,pointRadius:0,fill:false},
-    ]},options:bOpts('$M')});
-  dc('tap');
-  charts['tap']=new Chart(document.getElementById('tapChart').getContext('2d'),{
-    type:'line',data:{labels:lbl,datasets:[
-      {label:'TAP',        data:rows.map(r=>r.tap),      borderColor:'#22d3ee',backgroundColor:'rgba(34,211,238,0.06)',fill:true,tension:.4,pointRadius:2,yAxisID:'y'},
-      {label:'Visits/wk', data:rows.map(r=>r.wkVisits), borderColor:'#a78bfa',borderDash:[4,3],tension:.4,pointRadius:2,fill:false,yAxisID:'y2'},
-    ]},
-    options:{...bOpts(''),scales:{x:{ticks:{color:'#64748b',font:{size:10},maxTicksLimit:12},grid:{color:'#1e2535'}},
-      y:{ticks:{color:'#64748b',font:{size:10}},grid:{color:'#1e2535'},position:'left'},
-      y2:{ticks:{color:'#a78bfa',font:{size:10}},grid:{display:false},position:'right'}}}});
-  dc('flow');
-  charts['flow']=new Chart(document.getElementById('flowChart').getContext('2d'),{
-    type:'bar',data:{labels:lbl.slice(1),datasets:[
-      {label:'BRPs',    data:rows.slice(1).map(r=>r.newBRPs), backgroundColor:'rgba(99,102,241,0.75)',borderRadius:3},
-      {label:'Churned', data:rows.slice(1).map(r=>-r.churned),backgroundColor:'rgba(244,63,94,0.6)',borderRadius:3},
-    ]},
-    options:{...bOpts('pts'),plugins:{...bOpts('pts').plugins,
-      tooltip:{callbacks:{label:ctx=>`${ctx.dataset.label}: ${Math.abs(ctx.raw).toFixed(0)}`},
-               backgroundColor:'#1e2535',titleColor:'#f1f5f9',bodyColor:'#94a3b8',borderColor:'#2d3748',borderWidth:1}}}});
-}
+    const btn = document.getElementById('btn-confirm');
+    btn.textContent = 'Saving…';
+    btn.style.pointerEvents = 'none';
 
-function renderMilestones(rows,s){
-  const max=rows[rows.length-1].annRev;
-  const steps=[1,2,3,4,5,6,7,8,9,10].map(n=>n*1e6).filter(v=>v<=Math.max(s.revenueTarget*1.5,max*1.05));
-  const cols=['#22d3ee','#6366f1','#8b5cf6','#a855f7','#ec4899','#f43f5e','#f59e0b','#10b981','#14b8a6','#3b82f6'];
-  document.getElementById('milestoneList').innerHTML=steps.map((ms,i)=>{
-    const hit=findMS(rows,ms);
-    return`<div class="ms-row">
-      <div class="ms-dot" style="background:${cols[i]}"></div>
-      <div class="ms-lbl">$${(ms/1e6).toFixed(0)}M${ms===s.revenueTarget?' 🎯':''}</div>
-      <div class="ms-date">${hit?hit.lbl:'Beyond horizon'}</div>
-      <div class="ms-bw"><div class="ms-b" style="width:${hit?Math.min(100,(ms/max)*100):100}%;background:${cols[i]};opacity:${hit?1:.2}"></div></div>
-      <div class="ms-info">${hit?hit.wkVisits+' visits/wk · TAP '+hit.tap:''}</div>
-    </div>`;}).join('');
-}
+    const signatureData = canvas.toDataURL('image/png');
+    const name = document.getElementById('patient-name').value.trim();
 
-// ── TABLE with period switching ───────────────────
-function renderTable(rows,s){
-  const period = activePeriod;
-  const agg    = aggregatePeriod(rows, period);
-  const isWk   = period==='weekly';
-  const isQA   = period==='quarterly'||period==='annual';
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/signatures`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': SUPABASE_KEY,
+          'Authorization': `Bearer ${SUPABASE_KEY}`,
+          'Prefer': 'return=minimal'
+        },
+        body: JSON.stringify({ name, signature_data: signatureData })
+      });
 
-  const periods = {weekly:'Weekly',monthly:'Monthly',quarterly:'Quarterly',annual:'Annual'};
-  document.getElementById('tableTitle').textContent = periods[period]+' Breakdown';
+      if (!res.ok) throw new Error('Save failed');
+      document.getElementById('screen-done').classList.add('show');
+    } catch (err) {
+      btn.textContent = 'Confirm ✓';
+      btn.style.pointerEvents = '';
+      document.getElementById('error-msg').textContent = 'Could not save. Please check your connection and try again.';
+      document.getElementById('error-msg').classList.add('show');
+    }
+  }
 
-  // Header
-  document.getElementById('tableHead').innerHTML=`<tr>
-    <th>Period</th><th>Leads/Wk</th><th>BRPs</th><th>Churned</th><th>TAP</th>
-    <th>Visits/Wk</th><th>$/Visit</th>
-    <th>${isWk?'Wk Visit Rev':isQA?'Period Visit Rev':'Mo Visit Rev'}</th>
-    <th>${isWk?'Wk Add. Rev':isQA?'Period Add. Rev':'Mo Add. Rev'}</th>
-    <th>${isWk?'Wk Total':isQA?'Period Total':'Mo Total'}</th>
-    <th>Annual Run Rate</th>
-  </tr>`;
-
-  // Rows
-  document.getElementById('forecastTable').innerHTML=agg.map(r=>{
-    const isGoal=r.annRev>=s.revenueTarget&&(r.m===0||(rows[r.m-1]&&rows[r.m-1].annRev<s.revenueTarget));
-    const div = isWk ? 4.333 : isQA ? 1 : 1;
-    const visitRev = isWk ? Math.round(r.moVisitRev/4.333) : r.moVisitRev;
-    const addRev   = isWk ? Math.round(r.moAddRev/4.333)   : r.moAddRev;
-    const totRev   = isWk ? Math.round(r.moTotalRev/4.333) : r.moTotalRev;
-    return`<tr class="${r.annRev>=s.revenueTarget?'td-hit':''}">
-      <td>${r.lbl}${isGoal?'<span class="badge">GOAL</span>':''}</td>
-      <td>${r.leadsWk}</td>
-      <td>${r.newBRPs}</td><td>${r.churned}</td><td>${r.tap.toLocaleString()}</td>
-      <td>${r.wkVisits.toLocaleString()}</td><td>$${r.cpv}</td>
-      <td>$${visitRev.toLocaleString()}</td>
-      <td>$${addRev.toLocaleString()}</td>
-      <td class="td-rev">$${totRev.toLocaleString()}</td>
-      <td class="td-total-rev">${fmtRev(r.annRev)}</td>
-    </tr>`;}).join('');
-}
-
-function renderComparison(){
-  const fmt=v=>fmtRev(v);
-  document.getElementById('compGrid').innerHTML=scenarios.map((s,i)=>{
-    const rows=computeForecast(s);
-    const g=findMS(rows,s.revenueTarget);
-    const l=rows[rows.length-1];
-    const overall=(s.showRate/100)*(s.stickRate/100)*(s.convRate/100);
-    const leads=s.leadsInternal+s.leadsDigital+s.leadsExternal;
-    return`<div class="comp-card ${i===activeScenario?'active-s':''}">
-      <h4>${s.label}${i===activeScenario?' ✦':''}</h4>
-      <div class="cs"><div class="csl">Leads/Week</div><div class="csv">${leads} (${s.leadsInternal}int+${s.leadsDigital}dig+${s.leadsExternal}ext)</div></div>
-      <div class="cs"><div class="csl">Funnel (show·stick·BRP)</div><div class="csv">${s.showRate}%·${s.stickRate}%·${s.convRate}%</div></div>
-      <div class="cs"><div class="csl">BRPs/Week</div><div class="csv">${(leads*overall).toFixed(1)}</div></div>
-      <div class="cs"><div class="csl">Churn/React</div><div class="csv">${s.churnRate}% / ${s.reactRate}%</div></div>
-      <div class="cs"><div class="csl">Target $/Visit</div><div class="csv">$${s.targetCPV}</div></div>
-      <div class="cs"><div class="csl">$${(s.revenueTarget/1e6).toFixed(0)}M Goal</div><div class="csv" style="color:${g?'#6366f1':'#f43f5e'}">${g?g.lbl:'Not in window'}</div></div>
-      <div class="cs"><div class="csl">End of Period</div><div class="csv">${fmt(l.annRev)}</div></div>
-    </div>`;}).join('');
-}
-
-// ═══════════════════════════════════════════════════
-// CARE PLAN TAB
-// ═══════════════════════════════════════════════════
-function renderCarePlanTab(){
-  const t=cpTotal(),pif=t-PIF_DISCOUNT,wdd=t/DD_WEEKS,vis=cpVisits(),cpv=cpCPV();
-  const tap=+v('currentTAP')||740, wv=+v('weeklyVisits')||550;
-  document.getElementById('cpHeader').innerHTML=`
-    <div class="cp-opt"><h4>Pay in Full</h4>
-      <div class="bprice">$${pif.toLocaleString()}</div>
-      <div class="save-pill">Save $${PIF_DISCOUNT}</div>
-      <div class="cp-note">One payment</div></div>
-    <div class="cp-opt"><h4>Weekly Direct Debit</h4>
-      <div class="bprice">$${Math.round(wdd)}<span>/wk</span></div>
-      <div class="save-pill">${DD_WEEKS} payments — $${t.toLocaleString()} total</div>
-      <div class="cp-note">Via Paysmart direct debit</div></div>`;
-  document.getElementById('cpRows').innerHTML=carePlan.map(r=>`
-    <div class="cp-brow">
-      <div><div class="cpn">${r.name}</div><div class="cpqp">${r.qty} × $${r.price}</div></div>
-      <div class="cpa">$${(r.qty*r.price).toLocaleString()}</div>
-    </div>`).join('');
-  document.getElementById('cpTotalAmt').textContent='$'+t.toLocaleString();
-  document.getElementById('cpStats').innerHTML=`
-    <div class="cp-stat"><div class="csl">Plan Total</div><div class="csv">$${t.toLocaleString()}</div><div class="css">per patient</div></div>
-    <div class="cp-stat"><div class="csl">$/Visit</div><div class="csv">$${cpv.toFixed(2)}</div><div class="css">${vis} total visits</div></div>
-    <div class="cp-stat"><div class="csl">Annual Rev/Patient</div><div class="csv">$${Math.round(cpv*(wv/tap)*52).toLocaleString()}</div><div class="css">at ${(wv/tap).toFixed(3)} v/pt/wk</div></div>`;
-}
-
-// ═══════════════════════════════════════════════════
-// SCENARIO & PERIOD MANAGEMENT
-// ═══════════════════════════════════════════════════
-function saveCurrentInputs(){
-  const s=scenarios[activeScenario];
-  s.startDate=v('startDate'); s.currentTAP=+v('currentTAP'); s.weeklyVisits=+v('weeklyVisits');
-  s.weeklyCollections=+v('weeklyCollections');
-  s.leadsInternal=+v('leadsInternal'); s.leadsDigital=+v('leadsDigital'); s.leadsExternal=+v('leadsExternal');
-  s.showRate=+v('showRate'); s.stickRate=+v('stickRate'); s.convRate=+v('convRate'); s.reactRate=+v('reactRate');
-  s.churnRate=+v('churnRate'); s.targetCPV=+v('targetCPV'); s.revRamp=+v('revRamp');
-  s.manualCPV=+v('manualCPV'); s.cpvMode=cpvMode;
-  s.revMassage=+v('revMassage'); s.revXray=+v('revXray'); s.revProducts=+v('revProducts');
-  s.revSupplements=+v('revSupplements'); s.revOther=+v('revOther');
-  s.revenueTarget=+v('revenueTarget'); s.forecastMonths=+v('forecastMonths');
-}
-
-function loadScenarioInputs(s){
-  const set=(id,val)=>{const el=document.getElementById(id);if(el)el.value=val;};
-  set('startDate',s.startDate); set('currentTAP',s.currentTAP); set('weeklyVisits',s.weeklyVisits);
-  set('weeklyCollections',s.weeklyCollections);
-  set('leadsInternal',s.leadsInternal); set('leadsDigital',s.leadsDigital); set('leadsExternal',s.leadsExternal);
-  set('showRate',s.showRate); set('stickRate',s.stickRate); set('convRate',s.convRate); set('reactRate',s.reactRate);
-  set('churnRate',s.churnRate); set('targetCPV',s.targetCPV); set('revRamp',s.revRamp);
-  set('manualCPV',s.manualCPV||s.targetCPV);
-  set('revMassage',s.revMassage||0); set('revXray',s.revXray||0); set('revProducts',s.revProducts||0);
-  set('revSupplements',s.revSupplements||0); set('revOther',s.revOther||0);
-  set('revenueTarget',s.revenueTarget); set('forecastMonths',s.forecastMonths);
-  cpvMode = s.cpvMode||'auto';
-  setCPVMode(cpvMode);
-  liveUpdate();
-}
-
-function setScenario(idx){
-  saveCurrentInputs(); activeScenario=idx;
-  loadScenarioInputs(scenarios[idx]);
-  document.querySelectorAll('.scenario-tabs button').forEach((b,i)=>b.classList.toggle('active',i===idx));
-  runForecast();
-}
-
-function setPeriod(p){
-  activePeriod=p;
-  document.querySelectorAll('.period-btn').forEach(b=>b.classList.toggle('active',b.textContent.toLowerCase()===p));
-  const s=scenarios[activeScenario];
-  renderTable(computeForecast(s),s);
-}
-
-function switchTab(name){
-  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-  document.querySelectorAll('.top-tabs button').forEach((b,i)=>b.classList.toggle('active',['forecast','careplan'][i]===name));
-  document.getElementById('tab-'+name).classList.add('active');
-  if(name==='careplan') renderCarePlanTab();
-}
-
-// ═══════════════════════════════════════════════════
-// INIT
-// ═══════════════════════════════════════════════════
-loadScenarioInputs(scenarios[0]);
-runForecast();
+  buildDots();
+  updateProgress();
 </script>
 </body>
 </html>
